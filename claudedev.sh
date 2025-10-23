@@ -26,11 +26,11 @@ claudedev() {
             return 0
             ;;
         --version|-v)
-            if docker image inspect "$IMAGE_NAME" &> /dev/null; then
+            if docker image inspect claude-code &> /dev/null; then
                 echo "📦 Claude Code Docker Image"
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                docker image inspect "$IMAGE_NAME" --format='Created: {{.Created}}'
-                docker image inspect "$IMAGE_NAME" --format='Size: {{.Size}} bytes'
+                docker image inspect claude-code --format='Created: {{.Created}}'
+                docker image inspect claude-code --format='Size: {{.Size}} bytes'
             else
                 echo "❌ Image not built yet"
             fi
@@ -38,7 +38,7 @@ claudedev() {
             ;;
         --clean)
             echo "🧹 Cleaning..."
-            docker rmi "$IMAGE_NAME" 2>/dev/null && echo "✅ Image removed"
+            docker rmi claude-code 2>/dev/null && echo "✅ Image removed"
             FORCE_BUILD=true
             ;;
         --rebuild)
@@ -74,7 +74,7 @@ claudedev() {
         fi
     fi
     
-    if [ "$FORCE_BUILD" = true ] || ! docker image inspect "$IMAGE_NAME" &> /dev/null; then
+    if [ "$FORCE_BUILD" = true ] || ! docker image inspect claude-code &> /dev/null; then
         [ "$FORCE_BUILD" = false ] && echo "🔍 Image not found" && echo "📦 Auto-provisioning..."
         echo ""
         
@@ -102,9 +102,9 @@ DOCKERFILE_END
         
         # CORRECTED: Proper docker build with quoted variables
         if [ "$FORCE_BUILD" = true ]; then
-            docker build --no-cache -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
+            docker build --no-cache -t claude-code "$DOCKERFILE_DIR"
         else
-            docker build -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
+            docker build -t claude-code "$DOCKERFILE_DIR"
         fi
         
         if [ $? -eq 0 ]; then
@@ -132,7 +132,7 @@ DOCKERFILE_END
         -v "$(pwd):/workspace" \
         -v claude-auth:/root/.claude \
         -p 8484:8484 \
-        "$IMAGE_NAME"
+        claude-code
     
     local EXIT_CODE=$?
     echo ""
