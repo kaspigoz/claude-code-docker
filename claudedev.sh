@@ -23,8 +23,6 @@ claudedev() {
             echo "  --version    Show image info"
             echo "  --help       Show this help"
             echo ""
-            echo "Works anywhere on your system. No configuration needed."
-            echo ""
             return 0
             ;;
         --version|-v)
@@ -35,7 +33,6 @@ claudedev() {
                 docker image inspect "$IMAGE_NAME" --format='Size: {{.Size}} bytes'
             else
                 echo "❌ Image not built yet"
-                echo "💡 Run 'claudedev' to build"
             fi
             return 0
             ;;
@@ -46,40 +43,32 @@ claudedev() {
             ;;
         --rebuild)
             FORCE_BUILD=true
-            echo "🔄 Rebuilding..."
             ;;
         --auth-reset)
-            echo "🔐 Resetting authentication..."
-            docker volume rm claude-auth 2>/dev/null && echo "✅ Auth cleared" || echo "ℹ️  No auth"
+            docker volume rm claude-auth 2>/dev/null && echo "✅ Auth cleared"
             return 0
             ;;
     esac
     
     if ! docker info &> /dev/null; then
         echo "❌ Docker is not running"
-        echo ""
-        echo "Start Docker and try again"
         return 1
     fi
     
     if [ "$AUTO_GIT_EXCLUDE" = true ] && [ -d .git ]; then
         local GIT_EXCLUDE_FILE=".git/info/exclude"
-        local CLAUDE_PATTERNS=(
-            "# Claude Code artifacts (added by claudedev)"
-            "CLAUDE.md"
-            "Claude.md"
-            "claude.md"
-            ".claude/"
-            "*.claude.md"
-        )
-        
         if [ ! -f "$GIT_EXCLUDE_FILE" ] || ! grep -q "Claude Code artifacts" "$GIT_EXCLUDE_FILE" 2>/dev/null; then
             echo "🔧 Configuring .git/info/exclude..."
             mkdir -p "$(dirname "$GIT_EXCLUDE_FILE")"
-            echo "" >> "$GIT_EXCLUDE_FILE"
-            for pattern in "${CLAUDE_PATTERNS[@]}"; do
-                echo "$pattern" >> "$GIT_EXCLUDE_FILE"
-            done
+            {
+                echo ""
+                echo "# Claude Code artifacts (added by claudedev)"
+                echo "CLAUDE.md"
+                echo "Claude.md"
+                echo "claude.md"
+                echo ".claude/"
+                echo "*.claude.md"
+            } >> "$GIT_EXCLUDE_FILE"
             echo "✅ Git exclude configured"
             echo ""
         fi
@@ -108,16 +97,22 @@ CMD ["/bin/bash"]
 DOCKERFILE_END
         fi
         
-        echo "🔨 Building image (2-5 minutes)..."
+        echo "🔨 Building Docker image (2-5 minutes)..."
+        echo ""
         
-        local BUILD_FLAGS="-t $IMAGE_NAME"
-        [ "$FORCE_BUILD" = true ] && BUILD_FLAGS="--no-cache $BUILD_FLAGS"
+        # CORRECTED: Proper docker build with quoted variables
+        if [ "$FORCE_BUILD" = true ]; then
+            docker build --no-cache -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
+        else
+            docker build -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
+        fi
         
-        if docker build $BUILD_FLAGS "$DOCKERFILE_DIR"; then
+        if [ $? -eq 0 ]; then
             echo ""
             echo "✅ Build complete!"
             echo ""
         else
+            echo ""
             echo "❌ Build failed"
             return 1
         fi
