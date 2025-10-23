@@ -127,11 +127,18 @@ DOCKERFILE_END
     echo "╚════════════════════════════════════════════════════════════╝"
     echo ""
     
+    # docker run -it --rm \
+    #     --name claude-dev \
+    #     -v "$(pwd):/workspace" \
+    #     -v claude-auth:/root/.claude \
+    #     -p 8484:8484 \
+    #     claude-code
+
     docker run -it --rm \
         --name claude-dev \
+        --network host \
         -v "$(pwd):/workspace" \
-        -v claude-auth:/root/.claude \
-        -p 8484:8484 \
+        -v claude-auth:/root \
         claude-code
     
     local EXIT_CODE=$?
