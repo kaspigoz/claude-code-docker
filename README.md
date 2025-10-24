@@ -79,14 +79,15 @@ curl -fsSL https://raw.githubusercontent.com/kaspigoz/claude-code-docker/main/un
 
 ## 📚 Full Documentation
 
-👉 **[Read the Full BASE Documentation](./BASE.md)**
+> 📖 **[Read the Complete Implementation Guide →](./GUIDE.md)**
 
-Complete guide including:
-- Detailed architecture
-- Git integration details
-- Troubleshooting
-- Advanced configurations
-- Complete removal procedures
+**Includes:**
+- 🏗️ Detailed architecture and benefits
+- 🔧 Git integration (`.git/info/exclude` vs `.gitignore`)
+- 🐛 Comprehensive troubleshooting guide
+- ⚙️ Advanced configurations & customization
+- 🗑️ Complete removal procedures
+- 💼 Production use cases for consultancies
 
 ## 🤝 Contributing
 

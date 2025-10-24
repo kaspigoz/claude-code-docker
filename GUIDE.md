@@ -1,8 +1,48 @@
-Claude Code in Docker with OAuth - Professional Implementation Guide
-Overview
-This guide demonstrates a production-ready approach to running Claude Code in complete isolation using Docker. A single, self-provisioning shell function automatically handles setup, build, deployment, and local git configuration—requiring zero manual configuration.
-The core principle: Run claudedev in any project directory. That's it. No configuration, no assumptions about where your code lives, no forced directory structure.
-Key Benefits:
+# Claude Code in Docker with OAuth
+### Professional Implementation Guide
+
+---
+
+## 📖 Table of Contents
+
+- [Overview](#overview)
+- [Key Benefits](#key-benefits)
+- [Why This Approach?](#why-this-approach)
+- [Prerequisites](#prerequisites)
+- [Implementation](#implementation)
+- [Git Integration & Version Control](#git-integration--version-control)
+- [Usage Patterns](#usage-patterns)
+- [Command Reference](#command-reference)
+- [Production Use Cases](#production-use-cases)
+- [Troubleshooting Guide](#troubleshooting-guide)
+- [Complete Removal](#complete-removal)
+- [Architecture Benefits](#architecture-benefits)
+- [Advanced Configurations](#advanced-configurations)
+- [Quick Start Summary](#quick-start-summary)
+
+---
+
+## Overview
+
+> **Core Principle:** Run `claudedev` in any project directory. That's it. No configuration, no assumptions about where your code lives, no forced directory structure.
+
+This guide demonstrates a **production-ready approach** to running Claude Code in complete isolation using Docker. A single, self-provisioning shell function automatically handles setup, build, deployment, and local git configuration—requiring zero manual configuration.
+
+<details>
+<summary><b>🎯 What This Guide Covers</b></summary>
+
+- Complete Docker-based isolation for Claude Code
+- OAuth authentication with session persistence
+- Automatic local git configuration (`.git/info/exclude`)
+- Works in any directory structure
+- Zero host system modifications
+- Professional multi-client workflow support
+
+</details>
+
+---
+
+## Key Benefits
 
 ✅ Complete system isolation
 ✅ Zero global installations
@@ -13,88 +53,142 @@ Key Benefits:
 ✅ Automatic local git configuration (no repository pollution)
 
 
-Why This Approach?
-For Security-Conscious Developers
+---
 
-No global npm packages with potential vulnerabilities
-Sandboxed execution environment
-Per-project isolation
-No elevated permissions required
-Clean audit trail
+## Why This Approach?
 
-For Developers with Diverse Project Locations
+<details>
+<summary><b>🔒 For Security-Conscious Developers</b></summary>
 
-Works wherever your projects live
-No forced directory structure
-Client work in ~/clients/acme/
-Personal projects in ~/code/
-Open source in ~/github/
-Legacy work in ~/Desktop/old-stuff/
-All work the same way
+- No global npm packages with potential vulnerabilities
+- Sandboxed execution environment
+- Per-project isolation
+- No elevated permissions required
+- Clean audit trail
 
-For Multi-Client Scenarios
+</details>
 
-Separate containers per project
-No cross-project contamination
-Easy context switching
-Clean separation of credentials
-Professional boundaries maintained
+<details>
+<summary><b>📁 For Developers with Diverse Project Locations</b></summary>
 
-For System Integrity
+- Works wherever your projects live
+- No forced directory structure
+- Client work in `~/clients/acme/`
+- Personal projects in `~/code/`
+- Open source in `~/github/`
+- Legacy work in `~/Desktop/old-stuff/`
+- **All work the same way**
 
-Host machine remains pristine
-No PATH pollution
-No config file clutter
-Reversible in seconds
-No permission conflicts
+</details>
 
-For Compliance & Governance
+<details>
+<summary><b>👥 For Multi-Client Scenarios</b></summary>
 
-Auditable environment
-Controlled tool versions
-Documented dependencies
-Isolated execution
-Clean removal capability
+- Separate containers per project
+- No cross-project contamination
+- Easy context switching
+- Clean separation of credentials
+- Professional boundaries maintained
 
-For Version Control Hygiene
+</details>
 
-Personal exclusions via .git/info/exclude (not tracked in repo)
-Claude artifacts excluded from commits
-No pollution of project .gitignore
-Individual developer preferences respected
-Clean repository hygiene
+<details>
+<summary><b>🛡️ For System Integrity</b></summary>
+
+- Host machine remains pristine
+- No PATH pollution
+- No config file clutter
+- Reversible in seconds
+- No permission conflicts
+
+</details>
+
+<details>
+<summary><b>📋 For Compliance & Governance</b></summary>
+
+- Auditable environment
+- Controlled tool versions
+- Documented dependencies
+- Isolated execution
+- Clean removal capability
+
+</details>
+
+<details>
+<summary><b>🎯 For Version Control Hygiene</b></summary>
+
+- Personal exclusions via `.git/info/exclude` (not tracked in repo)
+- Claude artifacts excluded from commits
+- No pollution of project `.gitignore`
+- Individual developer preferences respected
+- Clean repository hygiene
+
+</details>
 
 
-Prerequisites
-Install Docker
-macOS:
-bashbrew install --cask docker
+---
+
+## Prerequisites
+
+### 1. Install Docker
+
+<details>
+<summary><b>🍎 macOS</b></summary>
+
+```bash
+brew install --cask docker
 # Launch Docker Desktop from Applications
 # Wait for "Docker Desktop is running" in menu bar
-Linux (Ubuntu/Debian):
-bashsudo apt-get update
+```
+
+</details>
+
+<details>
+<summary><b>🐧 Linux (Ubuntu/Debian)</b></summary>
+
+```bash
+sudo apt-get update
 sudo apt-get install -y docker.io
 sudo usermod -aG docker $USER
 # Log out and back in
-Windows:
+```
 
-Download Docker Desktop: https://www.docker.com/products/docker-desktop
-Install and restart
-Enable WSL 2 if prompted
+</details>
 
-Verify:
-bashdocker --version
+<details>
+<summary><b>🪟 Windows</b></summary>
+
+1. Download Docker Desktop: https://www.docker.com/products/docker-desktop
+2. Install and restart
+3. Enable WSL 2 if prompted
+
+</details>
+
+**Verify Installation:**
+
+```bash
+docker --version
 docker run hello-world
-Claude Pro or Max Subscription
+```
 
-Subscribe at https://claude.ai
-Pro: $20/month (~45 messages per 5 hours)
-Max: $100/month (~225 messages per 5 hours)
+### 2. Claude Pro or Max Subscription
+
+> Subscribe at [claude.ai](https://claude.ai)
+
+- **Pro:** $20/month (~45 messages per 5 hours)
+- **Max:** $100/month (~225 messages per 5 hours)
 
 
-Implementation - Single Step
-Open shell configuration:
-bash# For bash users:
+---
+
+## Implementation
+
+### Single-Step Setup
+
+#### Step 1: Open Shell Configuration
+
+```bash
+# For bash users:
 nano ~/.bashrc
 
 # For zsh users (macOS default):
@@ -103,7 +197,12 @@ nano ~/.zshrc
 # Or use preferred editor:
 vim ~/.bashrc
 code ~/.bashrc
-Add the complete function:
+```
+
+#### Step 2: Add the Complete Function
+
+<details>
+<summary><b>📋 Click to view the complete <code>claudedev()</code> function</b></summary>
 bash# ============================================================================
 # Claude Code in Docker - Auto-provisioning Function
 # ============================================================================
@@ -414,83 +513,120 @@ DOCKERFILE_END
 if [ -n "$BASH_VERSION" ]; then
     complete -W "--help --rebuild --clean --version --auth-reset" claudedev
 fi
-Activate:
-bash# Save the file (nano: Ctrl+X, Y, Enter)
+```
+
+</details>
+
+#### Step 3: Activate Configuration
+
+```bash
+# Save the file (nano: Ctrl+X, Y, Enter)
 
 # Load immediately
 source ~/.bashrc  # or source ~/.zshrc
 
 # Verify installation
 type claudedev
+```
 
-Git Integration & Version Control
-Understanding .git/info/exclude vs .gitignore
-Why .git/info/exclude is better for personal tooling:
-Feature.git/info/exclude.gitignoreTracked in repo❌ No (local only)✅ Yes (shared)Affects others❌ No✅ YesPersonal preferences✅ Perfect for❌ Not idealProject standards❌ Not for✅ Perfect forMerge conflicts❌ Never⚠️ PossiblePollutes repo❌ No⚠️ Can
-Best practice:
+---
 
-Use .git/info/exclude for: Personal tooling preferences (IDEs, Claude Code, etc.)
-Use .gitignore for: Project-level exclusions (build artifacts, dependencies, etc.)
+## Git Integration & Version Control
 
-Automatic .git/info/exclude Configuration
-The claudedev function automatically configures .git/info/exclude in the current project:
-Automatically excluded files (local only):
+### Understanding `.git/info/exclude` vs `.gitignore`
 
-CLAUDE.md - Claude's project context file
-Claude.md - Case variation
-claude.md - Lowercase variation
-.claude/ - Project-specific Claude directory
-*.claude.md - Any Claude markdown files
+> **Why `.git/info/exclude` is better for personal tooling:**
 
-When it runs:
+| Feature | `.git/info/exclude` | `.gitignore` |
+|---------|---------------------|--------------|
+| **Tracked in repo** | ❌ No (local only) | ✅ Yes (shared) |
+| **Affects others** | ❌ No | ✅ Yes |
+| **Personal preferences** | ✅ Perfect for | ❌ Not ideal |
+| **Project standards** | ❌ Not for | ✅ Perfect for |
+| **Merge conflicts** | ❌ Never | ⚠️ Possible |
+| **Pollutes repo** | ❌ No | ⚠️ Can |
 
-Automatically when you run claudedev in any git repository
-Only if the current directory contains a .git folder
-Creates .git/info/exclude if it doesn't exist
-Appends patterns if file exists but lacks Claude entries
-Does not affect the repository - completely local to this project
+**Best practice:**
 
-Example output:
-bashcd /wherever/your/project/is
+- **Use `.git/info/exclude` for:** Personal tooling preferences (IDEs, Claude Code, etc.)
+- **Use `.gitignore` for:** Project-level exclusions (build artifacts, dependencies, etc.)
+
+---
+
+### Automatic `.git/info/exclude` Configuration
+
+The `claudedev` function automatically configures `.git/info/exclude` in the current project:
+
+**Automatically excluded files (local only):**
+
+- `CLAUDE.md` - Claude's project context file
+- `Claude.md` - Case variation
+- `claude.md` - Lowercase variation
+- `.claude/` - Project-specific Claude directory
+- `*.claude.md` - Any Claude markdown files
+
+**When it runs:**
+
+- ✅ Automatically when you run `claudedev` in any git repository
+- ✅ Only if the current directory contains a `.git` folder
+- ✅ Creates `.git/info/exclude` if it doesn't exist
+- ✅ Appends patterns if file exists but lacks Claude entries
+- ✅ Does not affect the repository - completely local to this project
+
+**Example output:**
+
+```bash
+cd /wherever/your/project/is
 claudedev
 
 🔧 Configuring .git/info/exclude for Claude artifacts...
    (This is local only - not tracked in repository)
 ✅ Git exclude configured (Claude artifacts hidden locally)
-Verification:
-bash# Check .git/info/exclude contents (local file, not in repo)
+```
+
+**Verification:**
+
+```bash
+# Check .git/info/exclude contents (local file, not in repo)
 cat .git/info/exclude
 
 # Should include:
 # Claude Code artifacts (added by claudedev)
-CLAUDE.md
-Claude.md
-claude.md
-.claude/
-*.claude.md
+# CLAUDE.md
+# Claude.md
+# claude.md
+# .claude/
+# *.claude.md
 
 # Verify these files are ignored
 touch CLAUDE.md
 git status
 # CLAUDE.md should NOT appear in untracked files
-Key Advantages of This Approach
-For individual developers:
+```
 
-Personal tool preferences don't clutter project .gitignore
-No need to coordinate with anyone on personal tooling
-Each project can have different local exclusions
-No merge conflicts from .gitignore changes
-Works in every project, wherever it lives
+---
 
-For consultancies:
+### Key Advantages of This Approach
 
-Client repositories remain unpolluted
-Professional boundaries maintained
-No evidence of specific tooling in client repos
-Easy to work across different client standards
-Works seamlessly across scattered client projects
+**For individual developers:**
 
-Manual Configuration (Optional)
+- Personal tool preferences don't clutter project `.gitignore`
+- No need to coordinate with anyone on personal tooling
+- Each project can have different local exclusions
+- No merge conflicts from `.gitignore` changes
+- Works in every project, wherever it lives
+
+**For consultancies:**
+
+- Client repositories remain unpolluted
+- Professional boundaries maintained
+- No evidence of specific tooling in client repos
+- Easy to work across different client standards
+- Works seamlessly across scattered client projects
+
+---
+
+### Manual Configuration (Optional)
 If AUTO_GIT_EXCLUDE=false is set, or for additional control:
 bash# Add to .git/info/exclude manually in current project
 cat >> .git/info/exclude << 'EOF'
@@ -546,9 +682,14 @@ cat .git/info/exclude
 # List all exclusions (including .gitignore)
 git status --ignored
 
-Usage Patterns
-Initial Setup (Automatic)
-bash# Navigate to ANY project, ANYWHERE on your system
+---
+
+## Usage Patterns
+
+### Initial Setup (Automatic)
+
+```bash
+# Navigate to ANY project, ANYWHERE on your system
 cd /path/to/your/project
 
 # Execute - everything provisions automatically
@@ -604,8 +745,14 @@ claudedev
 ╚════════════════════════════════════════════════════════════╝
 
 root@abc123:/workspace#
-OAuth Authentication (One-Time)
-bash# Inside the container
+```
+
+---
+
+### OAuth Authentication (One-Time)
+
+```bash
+# Inside the container
 claude
 ```
 ```
@@ -689,9 +836,14 @@ exit
 
 # Wherever your code lives, claudedev works the same
 
-Command Reference
-Primary Commands
-bash# Start in current directory (wherever you are)
+---
+
+## Command Reference
+
+### Primary Commands
+
+```bash
+# Start in current directory (wherever you are)
 claudedev
 
 # Display comprehensive help
@@ -699,8 +851,12 @@ claudedev --help
 
 # Show image information
 claudedev --version
-Maintenance Operations
-bash# Force rebuild (retrieve latest updates)
+```
+
+### Maintenance Operations
+
+```bash
+# Force rebuild (retrieve latest updates)
 claudedev --rebuild
 
 # Clean rebuild (fresh installation)
@@ -708,8 +864,12 @@ claudedev --clean
 
 # Reset authentication credentials
 claudedev --auth-reset
-Container Operations
-bash# Start Claude Code
+```
+
+### Container Operations
+
+```bash
+# Start Claude Code
 claude
 
 # Exit Claude Code
@@ -723,10 +883,16 @@ ls -la /workspace
 
 # Verify working directory
 pwd  # Returns: /workspace
+```
 
-Production Use Cases
-Multi-Client Development (Scattered Projects)
-bash# Client A - corporate structure
+---
+
+## Production Use Cases
+
+### Multi-Client Development (Scattered Projects)
+
+```bash
+# Client A - corporate structure
 cd ~/work/client-a/backend-api
 claudedev
 claude
@@ -761,17 +927,27 @@ exit
 # Shared authentication, isolated execution
 # Each project gets its own .git/info/exclude (local only)
 # No assumptions about project locations
-Customizing the Dockerfile
+```
+
+---
+
+### Customizing the Dockerfile
+
 If you need additional tools, you can customize the Dockerfile:
-bash# Edit the generated Dockerfile
+
+```bash
+# Edit the generated Dockerfile
 nano ~/claude-docker/Dockerfile
 
 # Example: Add Python support
 # Add these lines after the git installation:
 #   python3 \
 #   python3-pip \
+```
 
-# Full example with Python:
+**Full example with Python:**
+
+```dockerfile
 FROM node:20-slim
 
 RUN apt-get update && apt-get install -y \
@@ -786,13 +962,23 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 WORKDIR /workspace
 ENV PATH="/root/.local/bin:${PATH}"
 CMD ["/bin/bash"]
+```
 
+**Rebuild and use:**
+
+```bash
 # Rebuild the image
 claudedev --rebuild
 
 # Now Python is available in all your projects
-Container Monitoring
-bash# View running containers (separate terminal)
+```
+
+---
+
+### Container Monitoring
+
+```bash
+# View running containers (separate terminal)
 docker ps
 
 # Monitor resource usage
@@ -800,10 +986,16 @@ docker stats claude-dev
 
 # Inspect container logs
 docker logs claude-dev
+```
 
-Troubleshooting Guide
-Docker Daemon Issues
-bash# Verify Docker status
+---
+
+## Troubleshooting Guide
+
+### Docker Daemon Issues
+
+```bash
+# Verify Docker status
 docker info
 
 # Start Docker service
@@ -812,15 +1004,27 @@ docker info
 
 # Retry operation
 claudedev
-Port Conflicts
-bash# Identify process using port 8484
+```
+
+---
+
+### Port Conflicts
+
+```bash
+# Identify process using port 8484
 lsof -i :8484  # macOS/Linux
 netstat -ano | findstr :8484  # Windows
 
 # Modify function to use alternative port
 # Edit ~/.bashrc, change -p 8484:8484 to -p 8485:8484
-Build Failures
-bash# Execute clean rebuild
+```
+
+---
+
+### Build Failures
+
+```bash
+# Execute clean rebuild
 claudedev --clean
 
 # Verify network connectivity
@@ -828,24 +1032,42 @@ docker run --rm alpine ping -c 3 google.com
 
 # Check available disk space
 docker system df
-Authentication Expiration
-bash# Reset session (inside container)
+```
+
+---
+
+### Authentication Expiration
+
+```bash
+# Reset session (inside container)
 claude
 /logout
 
 # Re-authenticate
 claude
 # Select option 2, complete OAuth flow
-Credential Issues
-bash# Clear stored authentication
+```
+
+---
+
+### Credential Issues
+
+```bash
+# Clear stored authentication
 claudedev --auth-reset
 
 # Fresh authentication
 claudedev
 claude
 # Complete OAuth authentication
-File Permission Problems
-bash# Modify function to match user permissions
+```
+
+---
+
+### File Permission Problems
+
+```bash
+# Modify function to match user permissions
 # Edit ~/.bashrc, add after 'docker run -it --rm \':
 --user $(id -u):$(id -g) \
 
@@ -853,8 +1075,14 @@ bash# Modify function to match user permissions
 docker run -it --rm \
     --user $(id -u):$(id -g) \
     --name claude-dev \
-Git Exclude Not Working
-bash# Verify git repository exists
+```
+
+---
+
+### Git Exclude Not Working
+
+```bash
+# Verify git repository exists
 ls -la .git
 
 # Check AUTO_GIT_EXCLUDE setting
@@ -877,8 +1105,14 @@ claude.md
 .claude/
 *.claude.md
 EOF
-Claude Files Still Appear in Git Status
-bash# Check if files were already tracked before exclude was added
+```
+
+---
+
+### Claude Files Still Appear in Git Status
+
+```bash
+# Check if files were already tracked before exclude was added
 git ls-files | grep -i claude
 
 # If files are already tracked, they need to be untracked first
@@ -887,39 +1121,50 @@ git rm --cached -r .claude/
 
 # Now they'll be excluded going forward
 git status  # Should not show Claude files anymore
+```
 
-Complete Removal
-Understanding What Gets Removed
-Docker environment:
+---
 
-Docker image and volumes (removed during uninstall)
-~/claude-docker directory (removed during uninstall)
-Shell function (removed during uninstall)
+## Complete Removal
 
-Git configuration (per-project):
+### Understanding What Gets Removed
 
-.git/info/exclude entries (LOCAL to each project)
-These are NOT in version control
-Must be cleaned per project if desired
+**Docker environment:**
 
-Project artifacts (per-project):
+- Docker image and volumes (removed during uninstall)
+- `~/claude-docker` directory (removed during uninstall)
+- Shell function (removed during uninstall)
 
-CLAUDE.md files (generated by Claude Code)
-.claude/ directories (Claude's working files)
-These are in your working directory
+**Git configuration (per-project):**
 
-Philosophy: Per-Project Primary
-The tool works per-project, so cleanup is per-project.
-You have three cleanup strategies:
+- `.git/info/exclude` entries (LOCAL to each project)
+- These are NOT in version control
+- Must be cleaned per project if desired
 
-Current project only (simplest, most common)
-Specific projects (clean only what you want)
-Comprehensive search (optional, for power users)
+**Project artifacts (per-project):**
 
+- `CLAUDE.md` files (generated by Claude Code)
+- `.claude/` directories (Claude's working files)
+- These are in your working directory
 
-Strategy 1: Current Project Only (Recommended)
+---
+
+### Philosophy: Per-Project Primary
+
+The tool works per-project, so cleanup is per-project. You have three cleanup strategies:
+
+1. **Current project only** (simplest, most common)
+2. **Specific projects** (clean only what you want)
+3. **Comprehensive search** (optional, for power users)
+
+---
+
+### Strategy 1: Current Project Only (Recommended)
+
 Clean the project you're currently in:
-bash# Navigate to the project
+
+```bash
+# Navigate to the project
 cd /path/to/project
 
 # Remove Claude artifacts from this project
@@ -931,9 +1176,14 @@ nano .git/info/exclude
 # Remove Claude section manually
 
 # That's it for this project
-Repeat for each project where you used Claude Code.
+```
 
-Strategy 2: Specific Projects (Selective)
+> Repeat for each project where you used Claude Code.
+
+---
+
+### Strategy 2: Specific Projects (Selective)
+
 Clean only the projects you specify:
 bash# List of your projects
 PROJECTS=(
@@ -1048,31 +1298,43 @@ rm -rf .claude/
 nano .git/info/exclude
 # Remove Claude section manually
 
-Architecture Benefits
-System Isolation
+---
+
+## Architecture Benefits
+
+### System Isolation
+
 ✅ Zero host machine modifications
 ✅ No global package installations
 ✅ No PATH environment changes
 ✅ No configuration file pollution
 ✅ No permission elevation required
-Security Model
+
+### Security Model
+
 ✅ Sandboxed execution environment
 ✅ Per-project isolation
 ✅ Controlled network access
 ✅ Auditable container images
 ✅ Credential segregation
-Reproducibility
+
+### Reproducibility
+
 ✅ Version-controlled Dockerfile
 ✅ Identical environment across machines
 ✅ Deterministic builds
 ✅ CI/CD integration ready
-Operational Excellence
+
+### Operational Excellence
+
 ✅ Auto-provisioning capability
 ✅ Self-healing setup
 ✅ Minimal user intervention
 ✅ Single command operation
 ✅ Complete cleanup in seconds
-Professional Workflow
+
+### Professional Workflow
+
 ✅ Works in any directory structure
 ✅ No assumptions about project locations
 ✅ Per-project operation by design
@@ -1081,18 +1343,26 @@ Professional Workflow
 ✅ Audit trail maintained
 ✅ Professional boundaries
 ✅ Easy context switching
-Version Control Integration
-✅ Personal exclusions via .git/info/exclude (not tracked)
+
+### Version Control Integration
+
+✅ Personal exclusions via `.git/info/exclude` (not tracked)
 ✅ No pollution of project .gitignore
 ✅ Individual developer preferences respected
 ✅ No merge conflicts from tooling preferences
 ✅ Clean repository hygiene
 ✅ Professional client repository handling
 
-Integration Opportunities
-IDE Integration
-VS Code Remote Containers:
-json{
+---
+
+## Integration Opportunities
+
+### IDE Integration
+
+**VS Code Remote Containers:**
+
+```json
+{
   "name": "Claude Code Dev",
   "dockerFile": "../claude-docker/Dockerfile",
   "mounts": [
@@ -1100,14 +1370,20 @@ json{
   ],
   "forwardPorts": [8484]
 }
-JetBrains Gateway:
+```
 
-Configure remote Docker connection
-Mount workspace volume
-Forward OAuth port
+**JetBrains Gateway:**
 
-CI/CD Pipeline
-yaml# GitHub Actions example
+- Configure remote Docker connection
+- Mount workspace volume
+- Forward OAuth port
+
+---
+
+### CI/CD Pipeline
+
+```yaml
+# GitHub Actions example
 - name: Run Claude Code analysis
   run: |
     docker run --rm \
@@ -1115,8 +1391,14 @@ yaml# GitHub Actions example
       -e ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }} \
       claude-code \
       bash -c "claude < analysis-prompts.txt"
-Git Hooks Integration
-bash# Pre-commit hook to verify Claude files aren't committed
+```
+
+---
+
+### Git Hooks Integration
+
+```bash
+# Pre-commit hook to verify Claude files aren't committed
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 
@@ -1134,23 +1416,41 @@ fi
 EOF
 
 chmod +x .git/hooks/pre-commit
+```
 
-Advanced Configurations
-Resource Constraints
-bash# Modify docker run command with limits:
+---
+
+## Advanced Configurations
+
+### Resource Constraints
+
+```bash
+# Modify docker run command with limits:
 docker run -it --rm \
     --memory="4g" \
     --cpus="2" \
     --name claude-dev \
     # ... rest of flags
-Network Isolation
-bash# Add network restrictions:
+```
+
+---
+
+### Network Isolation
+
+```bash
+# Add network restrictions:
 docker run -it --rm \
     --network=none \
     # ... rest of flags
     # (Will break OAuth - use for restricted environments)
-Custom Exclude Patterns
-bash# Edit function to add project-specific patterns
+```
+
+---
+
+### Custom Exclude Patterns
+
+```bash
+# Edit function to add project-specific patterns
 local CLAUDE_PATTERNS=(
     "# Claude Code artifacts (added by claudedev)"
     "CLAUDE.md"
@@ -1173,9 +1473,14 @@ claude-temp-*.txt
 *.claude-backup
 EOF
 
-Quick Start Summary
-For developers seeking immediate deployment:
-bash# 1. Add function to shell configuration
+---
+
+## Quick Start Summary
+
+**For developers seeking immediate deployment:**
+
+```bash
+# 1. Add function to shell configuration
 nano ~/.bashrc  # Paste complete function
 
 # 2. Activate configuration
@@ -1193,66 +1498,89 @@ claude  # Follow OAuth prompts
 # 6. Work
 # Use claudedev in any project, anywhere on your system
 # No configuration, no assumptions, just works
+```
 
-Value Proposition
-For Individual Developers
+---
 
-System integrity: Host environment remains pristine
-Flexibility: Easy experimentation without consequences
-Portability: Same setup across all machines
-Peace of mind: Instant, complete removal capability
-Git hygiene: Personal exclusions stay personal (.git/info/exclude)
-No noise: Project .gitignore stays focused on project needs
-Privacy: No evidence of tooling choices in repositories
-Universal: Works wherever your projects live
+## Value Proposition
 
-For Consultancies & Agencies
+### For Individual Developers
 
-Client isolation: Perfect separation between projects
-Professionalism: Clean, controlled environments
-Compliance: Auditable, documented tooling
-Efficiency: Rapid context switching between clients
-Repository cleanliness: No tool artifacts in client repositories
-Invisible tooling: Client repos show no evidence of Claude Code usage
-Professional boundaries: Clear separation of personal tools from client projects
-Location agnostic: Works across scattered client project structures
+- **System integrity:** Host environment remains pristine
+- **Flexibility:** Easy experimentation without consequences
+- **Portability:** Same setup across all machines
+- **Peace of mind:** Instant, complete removal capability
+- **Git hygiene:** Personal exclusions stay personal (`.git/info/exclude`)
+- **No noise:** Project `.gitignore` stays focused on project needs
+- **Privacy:** No evidence of tooling choices in repositories
+- **Universal:** Works wherever your projects live
 
-For Multi-Machine Workflows
+### For Consultancies & Agencies
 
-Consistency: Same environment on laptop, desktop, remote servers
-No sync issues: Docker image travels with you
-Quick setup: New machine productive in 5 minutes
-No cleanup debt: Old machines clean up instantly
+- **Client isolation:** Perfect separation between projects
+- **Professionalism:** Clean, controlled environments
+- **Compliance:** Auditable, documented tooling
+- **Efficiency:** Rapid context switching between clients
+- **Repository cleanliness:** No tool artifacts in client repositories
+- **Invisible tooling:** Client repos show no evidence of Claude Code usage
+- **Professional boundaries:** Clear separation of personal tools from client projects
+- **Location agnostic:** Works across scattered client project structures
 
-For Developers with Scattered Projects
+### For Multi-Machine Workflows
 
-No forced structure: Works wherever your code lives
-No configuration: Just run claudedev in any project
-No assumptions: Tool doesn't dictate how you organize
-True flexibility: Client work, personal projects, open source—all the same
+- **Consistency:** Same environment on laptop, desktop, remote servers
+- **No sync issues:** Docker image travels with you
+- **Quick setup:** New machine productive in 5 minutes
+- **No cleanup debt:** Old machines clean up instantly
+
+### For Developers with Scattered Projects
+
+- **No forced structure:** Works wherever your code lives
+- **No configuration:** Just run `claudedev` in any project
+- **No assumptions:** Tool doesn't dictate how you organize
+- **True flexibility:** Client work, personal projects, open source—all the same
 
 
-Conclusion
-This implementation provides a professional-grade, self-provisioning Claude Code environment with complete isolation, zero host system impact, intelligent local git configuration, and absolute flexibility regarding project location.
-Key advantages:
+---
 
-Automatic setup and tear-down
-OAuth authentication with persistence
-Complete system isolation
-Production-ready architecture
-Individual developer focused
-Automatic .git/info/exclude configuration (local only)
-No repository pollution
-Professional client repository handling
-Zero impact on project standards
-Works in any directory, anywhere on your system
-No assumptions about project structure
-Per-project operation by design
+## Conclusion
 
-Deployment time: Under 5 minutes from zero to production.
-Maintenance overhead: Effectively zero—system self-manages.
-Removal complexity: 30 seconds for complete cleanup (with optional per-project artifact removal).
-Git integration: Automatic local exclusions that never affect the repository or anyone else.
-Flexibility: Works wherever your projects live—organized or scattered, client work or personal, any directory structure.
-This approach represents modern development best practices: containerized, reproducible, isolated, professionally architected, respectful of individual preferences while maintaining project integrity, and completely agnostic about how you organize your work.
-The use of .git/info/exclude instead of .gitignore demonstrates sophisticated understanding of git's exclusion mechanisms. The per-project operation model acknowledges the reality that developers' projects exist in diverse locations across their filesystem, and doesn't impose artificial organizational requirements.
+This implementation provides a **professional-grade, self-provisioning Claude Code environment** with complete isolation, zero host system impact, intelligent local git configuration, and absolute flexibility regarding project location.
+
+### Key Advantages
+
+- ✅ Automatic setup and tear-down
+- ✅ OAuth authentication with persistence
+- ✅ Complete system isolation
+- ✅ Production-ready architecture
+- ✅ Individual developer focused
+- ✅ Automatic `.git/info/exclude` configuration (local only)
+- ✅ No repository pollution
+- ✅ Professional client repository handling
+- ✅ Zero impact on project standards
+- ✅ Works in any directory, anywhere on your system
+- ✅ No assumptions about project structure
+- ✅ Per-project operation by design
+
+### Performance Metrics
+
+| Metric | Time |
+|--------|------|
+| **Deployment time** | Under 5 minutes from zero to production |
+| **Maintenance overhead** | Effectively zero—system self-manages |
+| **Removal complexity** | 30 seconds for complete cleanup |
+| **Setup per project** | Instant (automatic) |
+
+### Philosophy
+
+> **Git Integration:** Automatic local exclusions that never affect the repository or anyone else.
+
+> **Flexibility:** Works wherever your projects live—organized or scattered, client work or personal, any directory structure.
+
+This approach represents **modern development best practices**: containerized, reproducible, isolated, professionally architected, respectful of individual preferences while maintaining project integrity, and completely agnostic about how you organize your work.
+
+The use of `.git/info/exclude` instead of `.gitignore` demonstrates sophisticated understanding of git's exclusion mechanisms. The per-project operation model acknowledges the reality that developers' projects exist in diverse locations across their filesystem, and doesn't impose artificial organizational requirements.
+
+---
+
+**Made with ❤️ for professional developers who value isolation, flexibility, and clean workflows.**
