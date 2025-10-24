@@ -1,3 +1,4 @@
+cat > install.sh << 'ENDINSTALL'
 #!/usr/bin/env bash
 set -e
 
@@ -10,161 +11,183 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-printf "\n"
-printf "╔════════════════════════════════════════════════════════════╗\n"
-printf "║     Claude Code Docker - Automated Installer              ║\n"
-printf "╚════════════════════════════════════════════════════════════╝\n"
-printf "\n"
+echo ""
+echo "╔════════════════════════════════════════════════════════════╗"
+echo "║     Claude Code Docker - Automated Installer              ║"
+echo "╚════════════════════════════════════════════════════════════╝"
+echo ""
 
+# Improved shell detection - prioritize user's default shell
 detect_shell() {
-    if [ -n "$BASH_VERSION" ]; then
-        printf "bash"
-    elif [ -n "$ZSH_VERSION" ]; then
-        printf "zsh"
+    # Check user's default shell first (most reliable)
+    case "$SHELL" in
+        */zsh)
+            echo "zsh"
+            return
+            ;;
+        */bash)
+            echo "bash"
+            return
+            ;;
+    esac
+    
+    # Fallback: check what's running the script
+    if [ -n "$ZSH_VERSION" ]; then
+        echo "zsh"
+    elif [ -n "$BASH_VERSION" ]; then
+        echo "bash"
     else
-        case "$SHELL" in
-            */bash) printf "bash" ;;
-            */zsh) printf "zsh" ;;
-            *) printf "unknown" ;;
-        esac
+        echo "unknown"
     fi
 }
 
 DETECTED_SHELL=$(detect_shell)
 
 if [ "$DETECTED_SHELL" = "unknown" ]; then
-    printf "${RED}❌ Unsupported shell${NC}\n"
-    printf "This installer supports bash and zsh only.\n"
-    printf "\n"
-    printf "For manual installation, visit:\n"
-    printf "https://github.com/kaspigoz/claude-code-docker\n"
+    echo -e "${RED}❌ Unsupported shell${NC}"
+    echo "This installer supports bash and zsh only."
+    echo ""
+    echo "Your current shell: $SHELL"
+    echo ""
+    echo "For manual installation, visit:"
+    echo "https://github.com/kaspigoz/claude-code-docker"
     exit 1
 fi
 
+# Auto-select correct config file based on user's default shell
 if [ "$DETECTED_SHELL" = "zsh" ]; then
     SHELL_CONFIG="$HOME/.zshrc"
 else
     SHELL_CONFIG="$HOME/.bashrc"
 fi
 
-printf "${BLUE}Detected shell:${NC} $DETECTED_SHELL\n"
-printf "${BLUE}Config file:${NC} $SHELL_CONFIG\n"
-printf "\n"
+# Create config file if it doesn't exist
+if [ ! -f "$SHELL_CONFIG" ]; then
+    echo -e "${YELLOW}⚠️  $SHELL_CONFIG doesn't exist, creating it...${NC}"
+    touch "$SHELL_CONFIG"
+fi
 
-printf "Checking prerequisites...\n"
+echo -e "${BLUE}Detected shell:${NC} $DETECTED_SHELL"
+echo -e "${BLUE}Config file:${NC} $SHELL_CONFIG"
+echo ""
+
+echo "Checking prerequisites..."
 
 if ! command -v docker &> /dev/null; then
-    printf "${RED}❌ Docker not found${NC}\n"
-    printf "\n"
-    printf "Please install Docker first:\n"
-    printf "  • macOS: brew install --cask docker\n"
-    printf "  • Linux: sudo apt-get install docker.io\n"
-    printf "  • Windows: https://docker.com/products/docker-desktop\n"
-    printf "\n"
+    echo -e "${RED}❌ Docker not found${NC}"
+    echo ""
+    echo "Please install Docker first:"
+    echo "  • macOS: brew install --cask docker"
+    echo "  • Linux: sudo apt-get install docker.io"
+    echo "  • Windows: https://docker.com/products/docker-desktop"
+    echo ""
     exit 1
 fi
 
 if ! docker info &> /dev/null; then
-    printf "${YELLOW}⚠️  Docker daemon not running${NC}\n"
-    printf "\n"
-    printf "Please start Docker:\n"
-    printf "  • macOS/Windows: Launch Docker Desktop\n"
-    printf "  • Linux: sudo systemctl start docker\n"
-    printf "\n"
+    echo -e "${YELLOW}⚠️  Docker daemon not running${NC}"
+    echo ""
+    echo "Please start Docker:"
+    echo "  • macOS/Windows: Launch Docker Desktop"
+    echo "  • Linux: sudo systemctl start docker"
+    echo ""
     read -p "Press Enter when Docker is running, or Ctrl+C to cancel..."
     
     if ! docker info &> /dev/null; then
-        printf "${RED}❌ Docker still not running${NC}\n"
+        echo -e "${RED}❌ Docker still not running${NC}"
         exit 1
     fi
 fi
 
-printf "${GREEN}✅ Docker found and running${NC}\n"
-printf "\n"
+echo -e "${GREEN}✅ Docker found and running${NC}"
+echo ""
 
 if grep -q "claudedev()" "$SHELL_CONFIG" 2>/dev/null; then
-    printf "${YELLOW}⚠️  claudedev function already exists in $SHELL_CONFIG${NC}\n"
-    printf "\n"
+    echo -e "${YELLOW}⚠️  claudedev function already exists in $SHELL_CONFIG${NC}"
+    echo ""
     read -p "Reinstall/update? (y/N) " -n 1 -r
-    printf "\n"
+    echo
     
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        printf "Installation cancelled\n"
+        echo "Installation cancelled"
         exit 0
     fi
     
-    printf "\n"
-    printf "Backing up existing configuration...\n"
+    echo ""
+    echo "Backing up existing configuration..."
     cp "$SHELL_CONFIG" "$SHELL_CONFIG.backup-$(date +%Y%m%d-%H%M%S)"
-    printf "${GREEN}✅ Backup created${NC}\n"
-    printf "\n"
+    echo -e "${GREEN}✅ Backup created${NC}"
+    echo ""
     
-    printf "Removing old function...\n"
-    sed '/^# .*Claude Code in Docker/,/^fi$/d' "$SHELL_CONFIG" > "$SHELL_CONFIG.tmp"
-    mv "$SHELL_CONFIG.tmp" "$SHELL_CONFIG"
-    printf "${GREEN}✅ Old function removed${NC}\n"
-    printf "\n"
+    echo "Removing old function..."
+    sed -i.tmp '/^# .*Claude Code in Docker/,/^fi$/d' "$SHELL_CONFIG"
+    rm -f "$SHELL_CONFIG.tmp"
+    echo -e "${GREEN}✅ Old function removed${NC}"
+    echo ""
 fi
 
-printf "Downloading claudedev function...\n"
+echo "Downloading claudedev function..."
 
 if ! curl -fsSL "$FUNCTION_URL" >> "$SHELL_CONFIG"; then
-    printf "${RED}❌ Failed to download function${NC}\n"
-    printf "\n"
-    printf "Please check your internet connection and try again.\n"
-    printf "Or install manually from:\n"
-    printf "https://github.com/kaspigoz/claude-code-docker\n"
+    echo -e "${RED}❌ Failed to download function${NC}"
+    echo ""
+    echo "Please check your internet connection and try again."
+    echo "Or install manually from:"
+    echo "https://github.com/kaspigoz/claude-code-docker"
     exit 1
 fi
 
-printf "${GREEN}✅ Function installed to $SHELL_CONFIG${NC}\n"
-printf "\n"
+echo -e "${GREEN}✅ Function installed to $SHELL_CONFIG${NC}"
+echo ""
 
-printf "╔════════════════════════════════════════════════════════════╗\n"
-printf "║                 Installation Complete!                     ║\n"
-printf "╚════════════════════════════════════════════════════════════╝\n"
-printf "\n"
-printf "Next steps:\n"
-printf "\n"
-printf "1. Reload your shell configuration:\n"
-printf "   ${BLUE}source $SHELL_CONFIG${NC}\n"
-printf "\n"
-printf "2. Navigate to any project:\n"
-printf "   ${BLUE}cd /path/to/your/project${NC}\n"
-printf "\n"
-printf "3. Run Claude Code:\n"
-printf "   ${BLUE}claudedev${NC}\n"
-printf "\n"
-printf "4. First time? Follow OAuth authentication prompts\n"
-printf "\n"
-printf "For help:\n"
-printf "   ${BLUE}claudedev --help${NC}\n"
-printf "\n"
-printf "Documentation:\n"
-printf "   https://github.com/kaspigoz/claude-code-docker\n"
-printf "\n"
-printf "To uninstall:\n"
-printf "   curl -fsSL https://raw.githubusercontent.com/kaspigoz/claude-code-docker/main/uninstall.sh | bash\n"
-printf "\n"
+echo "╔════════════════════════════════════════════════════════════╗"
+echo "║                 Installation Complete!                     ║"
+echo "╚════════════════════════════════════════════════════════════╝"
+echo ""
+echo "Next steps:"
+echo ""
+echo "1. Open a NEW terminal window (or tab)"
+echo "   The function will be automatically available"
+echo ""
+echo "2. Or reload current shell:"
+echo -e "   ${BLUE}source $SHELL_CONFIG${NC}"
+echo ""
+echo "3. Navigate to any project:"
+echo -e "   ${BLUE}cd /path/to/your/project${NC}"
+echo ""
+echo "4. Run Claude Code:"
+echo -e "   ${BLUE}claudedev${NC}"
+echo ""
+echo "For help:"
+echo -e "   ${BLUE}claudedev --help${NC}"
+echo ""
+echo "Documentation:"
+echo "   https://github.com/kaspigoz/claude-code-docker"
+echo ""
 
 read -p "Reload shell configuration now? (Y/n) " -n 1 -r
-printf "\n"
+echo
 if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    # Reload appropriate shell
     if [ "$DETECTED_SHELL" = "zsh" ]; then
-        zsh -c "source $SHELL_CONFIG && type claudedev"
+        # For zsh, we need to exec zsh or tell user to open new terminal
+        echo ""
+        echo -e "${GREEN}✅ Configuration updated${NC}"
+        echo ""
+        echo "Please open a NEW terminal window for changes to take effect."
+        echo "Or run: source $SHELL_CONFIG"
     else
-        bash -c "source $SHELL_CONFIG && type claudedev"
+        # For bash, source works in current shell
+        bash -c "source $SHELL_CONFIG && type claudedev" && echo "" && echo -e "${GREEN}✅ Ready to use!${NC}"
     fi
-    
-    printf "\n"
-    printf "${GREEN}✅ Shell configuration reloaded${NC}\n"
-    printf "\n"
-    printf "You can now run 'claudedev' in any project!\n"
 else
-    printf "\n"
-    printf "Remember to run: source $SHELL_CONFIG\n"
+    echo ""
+    echo "Remember to open a new terminal or run: source $SHELL_CONFIG"
 fi
 
-printf "\n"
-printf "Happy coding! 🚀\n"
-printf "\n"
+echo ""
+echo "Happy coding! 🚀"
+echo ""
+ENDINSTALL
+
+chmod +x install.sh
