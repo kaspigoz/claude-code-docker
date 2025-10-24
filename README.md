@@ -4,7 +4,9 @@ This isn't perfect - but I needed something like this - and I created it -- perh
 I am SUPER excited about this - because I am always resistant to installing stuff on my host machine.
 Now - I can use Claude Code on any Folder/Project with no worries of long lasting side-effects on my OS. (I know - probably OCD)
 
-> Run Claude Code in complete isolation with zero system impact
+> Claude Code acces your local codebase
+> In complete isolation with zero system impact while
+> Insights, improvements, modifications - from outside
 
 Professional Docker-based implementation of Claude Code that works in any project, anywhere on your system—no configuration required.
 
