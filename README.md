@@ -18,6 +18,7 @@ Professional Docker-based implementation of Claude Code that works in any projec
 - 📁 **Universal** - Works in any directory structure
 - 🧹 **Clean** - Personal git exclusions via `.git/info/exclude`
 - ⚡ **Instant** - Start coding in seconds
+- 🔀 **Multi-instance** - Run multiple Claude Code sessions simultaneously
 
 ## 🎯 Quick Start
 
@@ -71,6 +72,35 @@ claudedev --clean      # Fresh rebuild
 claudedev --version    # Image info
 claudedev --auth-reset # Clear credentials
 ```
+
+## 🔀 Multi-Instance Support
+
+Run multiple Claude Code sessions simultaneously in different projects:
+
+```bash
+# Terminal 1
+cd ~/projects/app1
+claudedev
+
+# Terminal 2 (at the same time!)
+cd ~/projects/app2
+claudedev
+
+# Terminal 3 (yes, even more!)
+cd ~/client-work/project-x
+claudedev
+```
+
+**How it works:**
+- Each directory gets a unique container name (based on directory hash)
+- OAuth ports are automatically allocated (8484, 8485, 8486, etc.)
+- Authentication is shared across all instances (same credentials)
+- Projects remain completely isolated from each other
+
+**Perfect for:**
+- Working on multiple projects simultaneously
+- Comparing implementations across different codebases
+- Testing changes in one project while developing in another
 
 ## 🗑️ Uninstall
 ```bash

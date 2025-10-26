@@ -1,10 +1,33 @@
 #!/usr/bin/env bash
 
+# Helper function to find an available port starting from a base port
+find_available_port() {
+    local base_port=$1
+    local port=$base_port
+    local max_attempts=100
+
+    while [ $((port - base_port)) -lt $max_attempts ]; do
+        if ! nc -z localhost $port 2>/dev/null && ! docker ps --format '{{.Ports}}' | grep -q ":${port}->"; then
+            echo $port
+            return 0
+        fi
+        port=$((port + 1))
+    done
+
+    # Fallback to base port if no available port found
+    echo $base_port
+}
+
 claudedev() {
     local IMAGE_NAME="claude-code"
     local DOCKERFILE_DIR="$HOME/claude-docker"
     local FORCE_BUILD=false
     local AUTO_GIT_EXCLUDE=true
+
+    # Multi-instance support: Generate unique container name and port
+    local DIR_HASH=$(echo "$(pwd)" | md5sum | cut -c1-8)
+    local CONTAINER_NAME="claude-dev-${DIR_HASH}"
+    local OAUTH_PORT=$(find_available_port 8484)
     
     case "$1" in
         --help|-h)
@@ -13,6 +36,7 @@ claudedev() {
             echo "╚════════════════════════════════════════════════════════════╝"
             echo ""
             echo "📦 Start Claude Code in isolated Docker container"
+            echo "✨ Multi-instance support: Run in multiple directories simultaneously"
             echo ""
             echo "Usage: claudedev [OPTIONS]"
             echo ""
@@ -22,6 +46,11 @@ claudedev() {
             echo "  --clean      Remove and rebuild"
             echo "  --version    Show image info"
             echo "  --help       Show this help"
+            echo ""
+            echo "Multi-Instance:"
+            echo "  Each directory gets unique container name and OAuth port"
+            echo "  Authentication is shared across all instances"
+            echo "  Run 'claudedev' in different terminals/directories simultaneously"
             echo ""
             return 0
             ;;
@@ -122,23 +151,19 @@ DOCKERFILE_END
     echo "║              Claude Code - Docker Container                ║"
     echo "╠════════════════════════════════════════════════════════════╣"
     echo "║ Project: $(pwd | sed "s|$HOME|~|")"
-    echo "║ Auth: claude-auth volume"
-    echo "║ Port: 8484"
+    echo "║ Container: ${CONTAINER_NAME}"
+    echo "║ Auth: claude-auth volume (shared)"
+    echo "║ OAuth Port: ${OAUTH_PORT}"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo ""
     
-    # docker run -it --rm \
-    #     --name claude-dev \
-    #     -v "$(pwd):/workspace" \
-    #     -v claude-auth:/root/.claude \
-    #     -p 8484:8484 \
-    #     claude-code
-
+    # Multi-instance support: Use unique container name and port binding
     docker run -it --rm \
-        --name claude-dev \
-        --network host \
+        --name "${CONTAINER_NAME}" \
         -v "$(pwd):/workspace" \
         -v claude-auth:/root \
+        -p "${OAUTH_PORT}:8484" \
+        -e "CLAUDE_OAUTH_PORT=${OAUTH_PORT}" \
         claude-code
     
     local EXIT_CODE=$?
