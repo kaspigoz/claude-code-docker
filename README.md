@@ -69,13 +69,14 @@ claudedev              # Start in current directory
 claudedev --help       # Show help
 claudedev --rebuild    # Update image
 claudedev --clean      # Fresh rebuild
+claudedev --cleanup    # Remove all claude-dev containers
 claudedev --version    # Image info
 claudedev --auth-reset # Clear credentials
 ```
 
 ## 🔀 Multi-Instance Support
 
-Run multiple Claude Code sessions simultaneously in different projects:
+Run multiple Claude Code sessions simultaneously - even in the same directory!
 
 ```bash
 # Terminal 1
@@ -86,21 +87,29 @@ claudedev
 cd ~/projects/app2
 claudedev
 
-# Terminal 3 (yes, even more!)
-cd ~/client-work/project-x
+# Terminal 3 (same directory as Terminal 1!)
+cd ~/projects/app1
 claudedev
 ```
 
 **How it works:**
-- Each directory gets a unique container name (based on directory hash)
+- Each instance gets a unique container name (directory hash + timestamp)
 - OAuth ports are automatically allocated (8484, 8485, 8486, etc.)
 - Authentication is shared across all instances (same credentials)
-- Projects remain completely isolated from each other
+- Containers auto-cleanup on exit (--rm flag)
+- Multiple sessions can work on the same project simultaneously
 
 **Perfect for:**
 - Working on multiple projects simultaneously
+- Running multiple sessions in the same project (e.g., frontend + backend)
 - Comparing implementations across different codebases
 - Testing changes in one project while developing in another
+
+**Troubleshooting:**
+If you encounter container name conflicts, run:
+```bash
+claudedev --cleanup  # Removes all claude-dev containers
+```
 
 ## 🗑️ Uninstall
 ```bash

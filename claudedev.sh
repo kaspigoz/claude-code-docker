@@ -25,8 +25,20 @@ claudedev() {
     local AUTO_GIT_EXCLUDE=true
 
     # Multi-instance support: Generate unique container name and port
-    local DIR_HASH=$(echo "$(pwd)" | md5sum | cut -c1-8)
-    local CONTAINER_NAME="claude-dev-${DIR_HASH}"
+    # Use directory hash + timestamp to ensure uniqueness even in same directory
+    local DIR_HASH=""
+    if command -v md5sum &> /dev/null; then
+        DIR_HASH=$(echo "$(pwd)" | md5sum | cut -c1-8)
+    elif command -v md5 &> /dev/null; then
+        DIR_HASH=$(echo "$(pwd)" | md5 | cut -c1-8)
+    else
+        # Fallback: use simple hash of pwd
+        DIR_HASH=$(echo "$(pwd)" | cksum | cut -d' ' -f1)
+    fi
+
+    local TIMESTAMP=$(date +%s%N 2>/dev/null | cut -c1-13 || date +%s)  # milliseconds or seconds
+    local UNIQUE_ID="${DIR_HASH}-${TIMESTAMP}"
+    local CONTAINER_NAME="claude-dev-${UNIQUE_ID}"
     local OAUTH_PORT=$(find_available_port 8484)
     
     case "$1" in
@@ -41,16 +53,19 @@ claudedev() {
             echo "Usage: claudedev [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  (none)       Start in current directory"
-            echo "  --rebuild    Force rebuild image"
-            echo "  --clean      Remove and rebuild"
-            echo "  --version    Show image info"
-            echo "  --help       Show this help"
+            echo "  (none)         Start in current directory"
+            echo "  --rebuild      Force rebuild image"
+            echo "  --clean        Remove and rebuild"
+            echo "  --cleanup      Remove all claude-dev containers"
+            echo "  --auth-reset   Clear authentication"
+            echo "  --version      Show image info"
+            echo "  --help         Show this help"
             echo ""
             echo "Multi-Instance:"
-            echo "  Each directory gets unique container name and OAuth port"
+            echo "  Each instance gets unique container name and OAuth port"
+            echo "  Run multiple instances simultaneously (same or different directories)"
             echo "  Authentication is shared across all instances"
-            echo "  Run 'claudedev' in different terminals/directories simultaneously"
+            echo "  Containers auto-cleanup on exit (--rm flag)"
             echo ""
             return 0
             ;;
@@ -75,6 +90,14 @@ claudedev() {
             ;;
         --auth-reset)
             docker volume rm claude-auth 2>/dev/null && echo "✅ Auth cleared"
+            return 0
+            ;;
+        --cleanup)
+            echo "🧹 Cleaning up claude-dev containers..."
+            docker ps -a --filter "name=claude-dev" --format "{{.Names}}" | while read -r container; do
+                docker rm -f "$container" 2>/dev/null && echo "  ✅ Removed: $container"
+            done
+            echo "✅ Cleanup complete"
             return 0
             ;;
     esac
@@ -176,5 +199,5 @@ DOCKERFILE_END
 }
 
 if [ -n "$BASH_VERSION" ]; then
-    complete -W "--help --rebuild --clean --version --auth-reset" claudedev
+    complete -W "--help --rebuild --clean --cleanup --auth-reset --version" claudedev
 fi
