@@ -70,6 +70,7 @@ read -p "Remove? (y/N) " -n 1 -r
 echo
 echo ""
 
+# Fix this - naming is wrong
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     docker volume rm claude-auth 2>/dev/null && echo -e "   ${GREEN}✅ Volume removed${NC}" || echo -e "   ${YELLOW}ℹ️  No volume${NC}"
     docker rmi claude-code 2>/dev/null && echo -e "   ${GREEN}✅ Image removed${NC}" || echo -e "   ${YELLOW}ℹ️  No image${NC}"
