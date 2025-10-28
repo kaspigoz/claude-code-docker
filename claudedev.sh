@@ -1,3 +1,4 @@
+# START CLAUDE-CODE-DOCKER Mods ... until END CLAUDE-CODE-DOCKER
 #!/usr/bin/env bash
 
 # Helper function to find an available port starting from a base port
@@ -201,3 +202,4 @@ DOCKERFILE_END
 if [ -n "$BASH_VERSION" ]; then
     complete -W "--help --rebuild --clean --cleanup --auth-reset --version" claudedev
 fi
+# END CLAUDE-CODE-DOCKER
