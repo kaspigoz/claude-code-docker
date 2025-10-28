@@ -37,7 +37,7 @@ fi
 echo "This will remove Claude Code Docker from your system."
 echo ""
 read -p "Continue? (y/N) " -n 1 -r
-echo
+
 echo ""
 
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
