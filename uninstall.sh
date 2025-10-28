@@ -39,7 +39,7 @@ echo ""
 read -p "Continue? (y/N) " -n 1 -r
 echo
 echo ""
-
+#updated line endings
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Uninstallation cancelled"
     exit 0
