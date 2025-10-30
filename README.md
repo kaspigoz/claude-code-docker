@@ -46,6 +46,26 @@ That's it! No configuration, no setup files, no assumptions about where your cod
 - **Docker** (Desktop or Engine)
 - **Claude Pro/Max** subscription
 - **Bash** or **Zsh** shell
+- **macOS or Linux** (see Platform Support below)
+
+## 🖥️ Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| macOS | ✅ Fully Supported | Native bash/zsh support |
+| Linux | ✅ Fully Supported | Native bash/zsh support |
+| Windows | ⚠️ Not Supported | Requires WSL2 (see below) |
+
+### Windows Users
+
+This package uses bash scripts and Unix shell configurations, which are **not compatible with native Windows** (PowerShell/CMD).
+
+**Options for Windows users:**
+- ✅ **WSL2** (Windows Subsystem for Linux) - Fully supported, works natively
+- ⚠️ **Git Bash** - May work but untested
+- ⚠️ **Cygwin** - May work but untested
+
+If you're using WSL2, follow the Linux installation instructions from within your WSL2 environment.
 
 ## 📖 How It Works
 
