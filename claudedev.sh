@@ -26,19 +26,10 @@ claudedev() {
     local AUTO_GIT_EXCLUDE=true
 
     # Multi-instance support: Generate unique container name and port
-    # Use directory hash + timestamp to ensure uniqueness even in same directory
-    local DIR_HASH=""
-    if command -v md5sum &> /dev/null; then
-        DIR_HASH=$(echo "$(pwd)" | md5sum | cut -c1-8)
-    elif command -v md5 &> /dev/null; then
-        DIR_HASH=$(echo "$(pwd)" | md5 | cut -c1-8)
-    else
-        # Fallback: use simple hash of pwd
-        DIR_HASH=$(echo "$(pwd)" | cksum | cut -d' ' -f1)
-    fi
-
+    # Use directory name + timestamp to ensure uniqueness even in same directory
+    local DIR_NAME=$(basename "$(pwd)")
     local TIMESTAMP=$(date +%s%N 2>/dev/null | cut -c1-13 || date +%s)  # milliseconds or seconds
-    local UNIQUE_ID="${DIR_HASH}-${TIMESTAMP}"
+    local UNIQUE_ID="${DIR_NAME}-${TIMESTAMP}"
     local CONTAINER_NAME="claude-dev-${UNIQUE_ID}"
     local OAUTH_PORT=$(find_available_port 8484)
     
