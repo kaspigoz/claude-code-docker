@@ -1,7 +1,6 @@
 # Claude Code in Docker
 
-This isn't perfect - but I needed something like this - and I created it -- perhaps some of you can use/improve this baseline.
-I am SUPER excited about this - because I am always resistant to installing stuff on my host machine.
+I am always resistant to installing stuff on my host machine.
 Now - I can use Claude Code on any Folder/Project with no worries of long lasting side-effects on my OS. (I know - probably OCD)
 
 > Run Claude Code in complete isolation with zero system impact
