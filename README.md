@@ -1,11 +1,11 @@
 # Claude Code in Docker
 
-I am always resistant to installing stuff on my host machine.
-Now - I can use Claude Code on any Folder/Project with no worries of long lasting side-effects on my OS. (I know - probably OCD)
+For those resistant to installing stuff on their host machine.
+Now - You can use Claude Code on any Folder/Project with no worries of long lasting side-effects on your OS.
 
 > Run Claude Code in complete isolation with zero system impact
 
-Professional Docker-based implementation of Claude Code that works in any project, anywhere on your system—no configuration required.
+Professional Docker-based implementation of Claude Code that works in any project, anywhere on your system — no configuration required.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
