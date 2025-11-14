@@ -36,6 +36,8 @@ claudedev
 
 # First time: Authenticate via browser
 # Subsequent runs: Instant access
+# run Claude Cli
+claude
 ```
 
 That's it! No configuration, no setup files, no assumptions about where your code lives.
